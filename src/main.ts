@@ -5,7 +5,7 @@ import { IPeople } from "./interfaces/IPeople";
 
 const searchInput = document.querySelector("#searchInput") as HTMLInputElement;
 const output = document.querySelector("#output") as HTMLDivElement;
-const modal = document.getElementById("pokemonModal");
+// const modal = document.getElementById("pokemonModal");
 
 const btnFilms = document.getElementById("btnFilms");
 const btnPeople = document.getElementById("btnPeople");
@@ -13,9 +13,9 @@ const btnPlanets = document.getElementById("btnPlanets");
 
 const scrollTop = document.getElementById("scrollTop");
 
-const span = document.getElementsByClassName("close")[0];
-const searchCount = document.getElementById("searchCount");
-const logo = document.getElementById("logo");
+// const span = document.getElementsByClassName("close")[0];
+// const searchCount = document.getElementById("searchCount");
+// const logo = document.getElementById("logo");
 
 const BASE_URL: string = "http://swapi.dev/api/";
 
