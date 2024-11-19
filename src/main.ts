@@ -1,140 +1,111 @@
-import { IApiResult } from "./interfaces/IApiResult";
-import { IPokemon } from "./interfaces/IPokemon";
-import { IPokemonInfo } from "./interfaces/IPokemonInfo";
-import { IResult } from "./interfaces/IResult";
-import { typeColor } from "./constants/typeColor";
+import { IResult } from './interfaces/IResult';
+import { IFilm } from "./interfaces/IFilm";
+import { IPlanet } from "./interfaces/IPlanets";
+import { IPeople } from "./interfaces/IPeople";
 
 const searchInput = document.querySelector("#searchInput") as HTMLInputElement;
-const buttonDiv = document.querySelector("#buttonDiv") as HTMLDivElement;
 const output = document.querySelector("#output") as HTMLDivElement;
 const modal = document.getElementById("pokemonModal");
-const pokemonData = document.getElementById("pokemonData");
+
+const btnFilms = document.getElementById("btnFilms");
+const btnPeople = document.getElementById("btnPeople");
+const btnPlanets = document.getElementById("btnPlanets");
+
+const scrollTop = document.getElementById("scrollTop");
+
 const span = document.getElementsByClassName("close")[0];
 const searchCount = document.getElementById("searchCount");
 const logo = document.getElementById("logo");
-const typeImg = document.getElementById("typeImg");
 
-const BASE_URL: string = "https://pokeapi.co/api/v2";
-const allPokemonArr: IPokemonInfo[] = [];
-let typeArr: string[] = [];
+const BASE_URL: string = "http://swapi.dev/api/";
 
-async function fetchPokemon(limit: number, offset: number) {
-    storeCounter = 0;
-    fetchCounter = 0;
-    const response = await fetch(`${BASE_URL}/pokemon?limit=${limit}&offset=${offset}`);
-    const apiresult: IApiResult = await response.json();
-    const fetchPromises = apiresult.results.map((pokemon: IResult) => fetchPokemonDetails(pokemon.url));
-    await Promise.all(fetchPromises);
-    console.log({ storeCounter, fetchCounter });
-    displayPokemon(allPokemonArr);
-}
+let peopleResult: IResult;
+let planetsResult: IResult;
+let filmsResult: IResult;
 
-let storeCounter = 0;
-let fetchCounter = 0;
+const display = () => {
+    output.textContent = ""
+    console.log("Display: " + selCategory)
+    console.log({ peopleResult, planetsResult, filmsResult })
 
-async function fetchPokemonDetails(url: string) {
-    const pokemonStore = localStorage.getItem(url);
-    if (pokemonStore) {
-        allPokemonArr.push(JSON.parse(pokemonStore));
-        storeCounter++;
-    } else {
-        fetchCounter++;
-        const response = await fetch(url);
-        const pokemon: IPokemon = await response.json();
-        const data = { id: pokemon.id, name: pokemon.name, imgUrl: pokemon.sprites.other["official-artwork"].front_default, types: pokemon.types.map((type) => type.type.name) };
-        allPokemonArr.push(data);
-        localStorage.setItem(url, JSON.stringify(data));
+    switch (selCategory) {
+        case 'films':
+            filmsResult.results.forEach((item) => {
+                const film = item as IFilm
+                output.innerHTML += `<article>
+<h3>${film.title}</h3>
+<p>Director: ${film.director}</p>
+<p>Edited: ${film.edited.substring(0, 4)}</p>
+<p>Created: ${film.created.substring(0, 4)}</p>
+</article>`;
+            })
+            break;
+
+        case 'planets':
+            planetsResult.results.forEach((item) => {
+                const planet = item as IPlanet
+                output.innerHTML += `<article>
+<h3>${planet.name}</h3>
+<p>Climate: ${planet.climate}</p>
+<p>Edited: ${planet.edited.substring(0, 4)}</p>
+<p>Created: ${planet.created.substring(0, 4)}</p>
+<p>Diameter: ${planet.diameter}</p>
+<p>Population: ${planet.population}</p>
+</article>`;
+            })
+            break;
+
+        case 'people':
+            peopleResult.results.forEach((item) => {
+                const person = item as IPeople
+                output.innerHTML += `<article>
+<h3>${person.name}</h3>
+<p>Birtyear: ${person.birth_year}</p>
+<p>Edited: ${person.edited.substring(0, 4)}</p>
+<p>Created: ${person.created.substring(0, 4)}</p>
+</article>`;
+            })
+            break;
+
     }
+
 }
 
-function displayPokemon(pokemonArr: IPokemonInfo[]) {
-    output.innerHTML = "";
-    searchCount!.textContent = `${pokemonArr.length} / ${allPokemonArr.length}`;
-    pokemonArr.slice(0, 200).forEach((pokemon) => {
-        const article = document.createElement("article");
-        article.innerHTML = `
-            <div class="img-container">
-                <img src="${pokemon.imgUrl}" class="pokemon-img">
-            </div>
-            <div class="info-container">
-                <p>#${pokemon.id.toString().padStart(3, "0")}</p>
-                <p class='pokemonName'>${pokemon.name}</p>
-            </div>`;
 
-        article.addEventListener("click", () => {
-            pokemonData!.innerHTML = ` <div class="img-container">
-            <img src="${pokemon.imgUrl}" class="pokemon-img">
-        </div>
-        <div class='typeBtnNav'>
-            <button style='color:white;background-color:${typeColor.get(pokemon.types[0]) || "#fff"}' id='btnType1' class='button-type' >${pokemon.types[0] || "-"}</button>
-            <button style='color:white;background-color:${typeColor.get(pokemon.types[1]) || "#fff"}'id='btnType2' class='button-type' >${pokemon.types[1] || "-"}</button>
-        </div>
-        <div class="info-container">
-            <p>#${pokemon.id.toString().padStart(3, "0")}</p>
-            <p class='pokemonName'>${pokemon.name}</p>
-        </div>`
+fetch(BASE_URL + "people")
+    .then((resp) => resp.json())
+    .then((data: IResult) => peopleResult = data)
 
-            modal!.style.display = "block";
-        });
-        output.appendChild(article);
-    });
-}
+fetch(BASE_URL + "films")
+    .then((resp) => resp.json())
+    .then((data: IResult) => filmsResult = data)
+    .then(() => display())
 
-async function fetchTypes() {
-    const response = await fetch(`${BASE_URL}/type`);
-    const types: IApiResult = await response.json();
-    console.log(types);
+fetch(BASE_URL + "planets")
+    .then((resp) => resp.json())
+    .then((data: IResult) => planetsResult = data)
 
-    typeArr = types.results
-        .slice(0, 18)
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((item) => item.name);
 
-    typeArr.forEach((typeName) => {
-        const button = document.createElement("button");
-        button.textContent = typeName;
-        button.className = "button-type";
-        button.style.backgroundColor = typeColor.get(typeName) || "#777";
-        button.addEventListener("click", () => {
-            searchInput.value = "";
-            const modifiedArr = allPokemonArr.filter((pokemon) => pokemon.types.includes(typeName));
-            displayPokemon(modifiedArr);
-        });
-        buttonDiv.appendChild(button);
-    });
-}
+let selCategory = "films"
 
-searchInput.addEventListener("input", () => {
-    const modifiedArr = allPokemonArr.filter((pokemon) =>
-        pokemon.name.toLowerCase().includes(searchInput.value.trim().toLowerCase()) || pokemon.id.toString().includes(searchInput.value.trim().replace('#', ''))
-    );
-    displayPokemon(modifiedArr);
-});
+btnPlanets?.addEventListener('click', () => {
+    searchInput.value = "";
+    selCategory = 'planets'
+    display()
+})
 
-span.addEventListener("click", () => {
-    modal!.style.display = "none";
-});
 
-window.addEventListener("click", (event) => {
-    if (event.target == modal) {
-        modal!.style.display = "none";
-    }
-});
+btnFilms?.addEventListener('click', () => {
+    searchInput.value = "";
+    selCategory = 'films'
+    display()
+})
 
-typeImg?.addEventListener("click", () => {
-    const shuffled = [...allPokemonArr].sort(() => 0.5 - Math.random());
-    displayPokemon(shuffled.slice(0, 48));
-});
 
-logo?.addEventListener("click", () => {
-    const rndArr = allPokemonArr.slice(0, 200);
-    displayPokemon(rndArr);
-});
+btnPeople?.addEventListener('click', () => {
+    searchInput.value = "";
+    selCategory = 'people'
+    display()
+})
 
-const scrollTop = document.querySelector('#scrollTop')
-scrollTop?.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-
-fetchTypes();
-fetchPokemon(1509, 0);
+scrollTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))

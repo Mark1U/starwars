@@ -1,4 +1,10 @@
+import { IFilm } from "./IFilm"
+import { IPeople } from "./IPeople"
+import { IPlanet } from "./IPlanets"
+
 export interface IResult {
-    name: string;
-    url: string;
+    count: number
+    next: string
+    previous: any
+    results: IPlanet[] | IFilm[] | IPeople[]
 }
