@@ -1,7 +1,7 @@
 #output {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  gap: 64px;
   width: 50%;
   margin: 0 auto;
   align-content: center;
@@ -16,7 +16,7 @@ article {
   width: 100%;
   min-height: 128px;
   border-radius: 24px;
-  background: #00008b40;
+  background: #00008b30;
 }
 
 body {

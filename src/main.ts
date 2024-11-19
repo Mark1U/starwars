@@ -17,20 +17,22 @@ const scrollTop = document.getElementById("scrollTop");
 // const searchCount = document.getElementById("searchCount");
 // const logo = document.getElementById("logo");
 
-const BASE_URL: string = "http://swapi.dev/api/";
+const BASE_URL: string = "https://swapi.dev/api/";
 
 let peopleResult: IResult;
 let planetsResult: IResult;
 let filmsResult: IResult;
+let searchResult: IResult;
 
 const display = () => {
     output.textContent = ""
     console.log("Display: " + selCategory)
-    console.log({ peopleResult, planetsResult, filmsResult })
+    console.log({ peopleResult, planetsResult, filmsResult, searchResult })
 
     switch (selCategory) {
         case 'films':
-            filmsResult.results.forEach((item) => {
+            let res = (searchResult?.results.length > 0) ? searchResult : filmsResult
+            res.results.forEach((item) => {
                 const film = item as IFilm
                 output.innerHTML += `<article>
 <h3>${film.title}</h3>
@@ -42,7 +44,8 @@ const display = () => {
             break;
 
         case 'planets':
-            planetsResult.results.forEach((item) => {
+            let results2 = (searchResult?.results.length > 0) ? searchResult : planetsResult
+            results2.results.forEach((item) => {
                 const planet = item as IPlanet
                 output.innerHTML += `<article>
 <h3>${planet.name}</h3>
@@ -56,7 +59,8 @@ const display = () => {
             break;
 
         case 'people':
-            peopleResult.results.forEach((item) => {
+            let results3 = (searchResult?.results.length > 0) ? searchResult : peopleResult
+            results3.results.forEach((item) => {
                 const person = item as IPeople
                 output.innerHTML += `<article>
 <h3>${person.name}</h3>
@@ -86,6 +90,19 @@ fetch(BASE_URL + "planets")
     .then((data: IResult) => planetsResult = data)
 
 
+const searchApi = () => {
+    if (searchResult) {
+        searchResult.results = [];
+    }
+    const url = BASE_URL + selCategory + "/?search=" + encodeURI(searchInput.value)
+    console.log(url)
+    fetch(url)
+        .then((resp) => resp.json())
+        .catch((e) => console.error(e))
+        .then((data: IResult) => searchResult = data)
+        .then(() => display())
+}
+
 let selCategory = "films"
 
 btnPlanets?.addEventListener('click', () => {
@@ -106,6 +123,10 @@ btnPeople?.addEventListener('click', () => {
     searchInput.value = "";
     selCategory = 'people'
     display()
+})
+
+searchInput.addEventListener('input', () => {
+    searchApi();
 })
 
 scrollTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
